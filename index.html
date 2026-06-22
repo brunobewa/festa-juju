@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirmação de Presença · Juju faz 2 anos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f1ede6;          /* creme do convite */
+    --bg-soft:#f6f3ee;
+    --rose:#cf9f96;        /* rosé dos títulos */
+    --rose-soft:#ddb6ad;
+    --rose-deep:#bd8a80;   /* hover do botão */
+    --ink:#2d2b2c;         /* texto escuro forte */
+    --ink-soft:#5a5654;
+    --card:#fffdfa;
+    --line:rgba(45,43,44,.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Montserrat',sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:30px 18px 56px;
+  }
+  .wrap{width:100%;max-width:430px}
+
+  /* ---- Convite ---- */
+  .invite{
+    position:relative;
+    padding:40px 26px 36px;
+    text-align:center;
+    overflow:hidden;
+  }
+  /* confete decorativo */
+  .dot{position:absolute;border-radius:50%;opacity:.85}
+  .squig{position:absolute;font-size:18px;opacity:.7;line-height:1}
+  .pets{
+    font-size:30px;
+    letter-spacing:6px;
+    margin-bottom:14px;
+    filter:saturate(.9);
+  }
+  .name{
+    font-family:'Cormorant Garamond',serif;
+    font-weight:500;
+    font-size:62px;
+    letter-spacing:.16em;
+    padding-left:.16em;
+    color:var(--rose);
+    line-height:1;
+  }
+  .faz{
+    font-family:'Cormorant Garamond',serif;
+    font-weight:400;
+    font-style:italic;
+    font-size:26px;
+    color:var(--rose-soft);
+    margin:2px 0 0;
+  }
+  .age{
+    font-family:'Cormorant Garamond',serif;
+    font-weight:500;
+    font-size:48px;
+    letter-spacing:.12em;
+    padding-left:.12em;
+    color:var(--rose);
+    line-height:1.05;
+    margin-bottom:22px;
+  }
+  .datetime{
+    font-family:'Montserrat',sans-serif;
+    font-weight:700;
+    font-size:19px;
+    letter-spacing:.04em;
+    color:var(--ink);
+    line-height:1.5;
+    margin-bottom:14px;
+  }
+  .place{
+    font-size:15px;
+    line-height:1.6;
+    color:var(--ink);
+    font-weight:500;
+    max-width:300px;
+    margin:0 auto;
+  }
+  .come{
+    font-family:'Montserrat',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:.03em;
+    color:var(--ink);
+    margin-top:26px;
+  }
+
+  /* ---- Formulário ---- */
+  .form-card{
+    background:var(--card);
+    margin-top:22px;
+    padding:30px 26px 32px;
+    border-radius:12px;
+    box-shadow:0 14px 40px rgba(90,70,60,.14);
+  }
+  .form-title{
+    font-family:'Montserrat',sans-serif;
+    font-weight:600;
+    font-size:18px;
+    letter-spacing:.12em;
+    text-align:center;
+    color:var(--ink);
+    padding-left:.12em;
+  }
+  .form-sub{
+    text-align:center;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    margin:8px auto 24px;
+    line-height:1.55;
+    max-width:300px;
+  }
+  label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.04em;
+    color:var(--rose-deep);
+    margin:0 0 6px 2px;
+    text-transform:uppercase;
+  }
+  label .opt{color:#b0a39e;font-weight:400;text-transform:none;letter-spacing:0}
+  .field{margin-bottom:18px}
+  input,textarea{
+    width:100%;
+    font-family:'Montserrat',sans-serif;
+    font-size:15px;
+    color:var(--ink);
+    background:#faf7f3;
+    border:1px solid #e8ded7;
+    border-radius:8px;
+    padding:12px 13px;
+    transition:border-color .15s, background .15s;
+  }
+  input:focus,textarea:focus{
+    outline:none;
+    border-color:var(--rose);
+    background:#fff;
+  }
+  textarea{resize:vertical;min-height:62px}
+  .btn{
+    width:100%;
+    font-family:'Montserrat',sans-serif;
+    color:#fff;
+    background:var(--rose);
+    border:none;
+    border-radius:8px;
+    padding:13px;
+    cursor:pointer;
+    margin-top:4px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    transition:background .15s, transform .05s;
+  }
+  .btn-big{
+    font-weight:700;
+    font-size:20px;
+    letter-spacing:.08em;
+    padding-left:.08em;
+  }
+  .btn-small{
+    font-weight:500;
+    font-size:12px;
+    letter-spacing:.02em;
+    opacity:.9;
+  }
+  .btn:hover{background:var(--rose-deep)}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.6;cursor:default}
+
+  .ok{
+    display:none;
+    text-align:center;
+    padding:14px 0 2px;
+  }
+  .ok .check{
+    width:54px;height:54px;border-radius:50%;
+    background:var(--rose);
+    margin:0 auto 16px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .ok .check svg{width:26px;height:26px}
+  .ok h3{
+    font-family:'Montserrat',sans-serif;font-weight:600;
+    font-size:19px;letter-spacing:.04em;color:var(--ink);margin-bottom:8px;
+  }
+  .ok p{font-size:14px;color:var(--ink-soft);line-height:1.55}
+
+  /* ---- Botões de agenda ---- */
+  .cal-card{
+    margin-top:18px;
+    text-align:center;
+  }
+  .cal-title{
+    font-family:'Montserrat',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:.04em;
+    color:var(--ink);
+    margin-bottom:14px;
+  }
+  .cal-btns{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+  }
+  .cal-btn{
+    flex:1;
+    display:block;
+    text-decoration:none;
+    font-family:'Montserrat',sans-serif;
+    font-weight:600;
+    font-size:13.5px;
+    color:var(--rose-deep);
+    background:var(--card);
+    border:1.5px solid var(--rose-soft);
+    border-radius:8px;
+    padding:12px 8px;
+    transition:background .15s,border-color .15s;
+  }
+  .cal-btn:hover{background:#fbf2ef;border-color:var(--rose)}
+  .cal-hint{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-top:10px;
+  }
+
+  .footer-note{
+    text-align:center;
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-top:22px;
+    line-height:1.5;
+    font-weight:500;
+  }
+  .err{
+    display:none;
+    background:#fbe9e9;color:#9b2c2c;
+    font-size:13px;border-radius:8px;
+    padding:10px 12px;margin-bottom:16px;text-align:center;
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- CONVITE -->
+    <section class="invite">
+      <span class="dot" style="top:24px;left:30px;width:9px;height:9px;background:#9fc9bb"></span>
+      <span class="dot" style="top:60px;right:42px;width:7px;height:7px;background:#f3c98f"></span>
+      <span class="dot" style="top:140px;left:18px;width:8px;height:8px;background:#e7a9b8"></span>
+      <span class="dot" style="top:120px;right:24px;width:9px;height:9px;background:#9bbfe0"></span>
+      <span class="dot" style="bottom:70px;left:34px;width:7px;height:7px;background:#f4d96f"></span>
+      <span class="dot" style="bottom:40px;right:40px;width:8px;height:8px;background:#9fc9bb"></span>
+      <span class="squig" style="top:96px;left:46px;color:#e7a9b8">⌣</span>
+      <span class="squig" style="top:50px;left:120px;color:#9bbfe0">∿</span>
+      <span class="squig" style="bottom:96px;right:54px;color:#f3c98f">∿</span>
+
+      <div class="pets">🐩&nbsp;🎈&nbsp;🐶</div>
+      <div class="name">JUJU</div>
+      <div class="faz">faz</div>
+      <div class="age">2 ANOS</div>
+      <div class="datetime">28 de Junho · Domingo · 15hrs</div>
+      <p class="place">Rua João Américo de Oliveira, 922<br>Salão de Festas</p>
+      <div class="come">Está chegando, vem comemorar conosco!</div>
+    </section>
+
+    <!-- FORMULÁRIO -->
+    <section class="form-card">
+      <form id="rsvp" method="POST">
+        <div class="form-title">CONFIRMAR PRESENÇA</div>
+        <p class="form-sub">Conta pra gente quem vem comemorar com a Juju! 🐾</p>
+
+        <div id="errBox" class="err"></div>
+
+        <div class="field">
+          <label for="nome">Seu nome e sobrenome</label>
+          <input type="text" id="nome" name="Nome" placeholder="Nome e sobrenome" required>
+        </div>
+
+        <div class="field">
+          <label for="acomp">Quem vem com você? <span class="opt">(nome)</span></label>
+          <input type="text" id="acomp" name="Acompanhante" placeholder="Nome do adulto acompanhante">
+        </div>
+
+        <div class="field">
+          <label for="c1">Criança 1</label>
+          <input type="text" id="c1" name="Crianca1" placeholder="Nome da criança">
+        </div>
+
+        <div class="field">
+          <label for="c2">Criança 2</label>
+          <input type="text" id="c2" name="Crianca2" placeholder="Nome da criança">
+        </div>
+
+        <div class="field">
+          <label for="c3">Criança 3</label>
+          <input type="text" id="c3" name="Crianca3" placeholder="Nome da criança">
+        </div>
+
+        <div class="field">
+          <label for="obs">Observações <span class="opt">(opcional)</span></label>
+          <textarea id="obs" name="Observacoes" placeholder="Criança 4??? rs  Recado?"></textarea>
+        </div>
+
+        <button type="submit" class="btn" id="submitBtn">
+          <span class="btn-big">Confirmar</span>
+          <span class="btn-small">(que vai amassar a Juju)</span>
+        </button>
+      </form>
+
+      <!-- Confirmação -->
+      <div class="ok" id="okBox">
+        <div class="check">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <h3>Presença confirmada!</h3>
+        <p>Obrigado! Nos vemos no dia 28/06. 🎈</p>
+      </div>
+    </section>
+
+    <!-- ADICIONAR À AGENDA -->
+    <section class="cal-card">
+      <div class="cal-title">📅 Adicionar à minha agenda</div>
+      <div class="cal-btns">
+        <a class="cal-btn" id="gcal" target="_blank" rel="noopener">Google Agenda</a>
+        <a class="cal-btn" id="ical" download="festa-da-juju.ics">iPhone / Apple</a>
+      </div>
+      <p class="cal-hint">No Android, use o botão "Google Agenda".</p>
+    </section>
+
+    <p class="footer-note">Vai ter bolo, brincadeiras e muito au-au! 🐶</p>
+  </div>
+
+<script>
+  // ▼▼▼ COLE AQUI A URL DO SEU GOOGLE APPS SCRIPT (termina em /exec) ▼▼▼
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyBiRBf78KNhqrp-YfRYUUE_omO1Lfc9n7gLbfTN4B7QT9ZkcZU0iFn8eIhEzQbfXUf/exec';
+  // ▲▲▲ ------------------------------------------------------------ ▲▲▲
+
+  const form = document.getElementById('rsvp');
+  const okBox = document.getElementById('okBox');
+  const errBox = document.getElementById('errBox');
+  const btn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    errBox.style.display = 'none';
+
+    if (SCRIPT_URL.includes('COLE_AQUI')) {
+      errBox.textContent = 'Formulário ainda não configurado. Cole a URL do Apps Script no código.';
+      errBox.style.display = 'block';
+      return;
+    }
+
+    if (!form.Nome.value.trim()) {
+      errBox.textContent = 'Por favor, preencha o seu nome.';
+      errBox.style.display = 'block';
+      return;
+    }
+
+    const btnHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.textContent = 'ENVIANDO...';
+
+    try {
+      const data = new URLSearchParams(new FormData(form));
+      await fetch(SCRIPT_URL, {
+        method:'POST',
+        body:data,
+        mode:'no-cors'
+      });
+      // resposta opaca (no-cors): assumimos sucesso após o envio
+      form.style.display = 'none';
+      okBox.style.display = 'block';
+    } catch(err){
+      errBox.textContent = 'Não foi possível enviar agora. Tente novamente em instantes.';
+      errBox.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = btnHTML;
+    }
+  });
+
+  // ---- Botões "Adicionar à agenda" ----
+  (function(){
+    const titulo  = 'Festa da Juju - 2 anos';
+    const local   = 'Rua João Américo de Oliveira, 922 - Salão de Festas';
+    const desc    = 'Está chegando, vem comemorar conosco!';
+    const inicioZ = '20260628T180000Z'; // 28/06 às 15h (horário de Brasília)
+    const fimZ    = '20260629T025900Z'; // 28/06 às 23:59 (horário de Brasília)
+
+    // Google Agenda (também funciona no Android)
+    const g = 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+      + '&text='    + encodeURIComponent(titulo)
+      + '&dates='   + inicioZ + '/' + fimZ
+      + '&details=' + encodeURIComponent(desc)
+      + '&location='+ encodeURIComponent(local);
+    document.getElementById('gcal').href = g;
+
+    // Arquivo .ics (iPhone / Apple / Android)
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Festa Juju//PT-BR//',
+      'BEGIN:VEVENT',
+      'UID:festa-juju-2anos@convite',
+      'DTSTAMP:20260622T000000Z',
+      'DTSTART:' + inicioZ,
+      'DTEND:'   + fimZ,
+      'SUMMARY:' + titulo,
+      'LOCATION:' + local,
+      'DESCRIPTION:' + desc,
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+    document.getElementById('ical').href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+  })();
+</script>
+</body>
+</html>
