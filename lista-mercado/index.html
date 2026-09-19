@@ -274,20 +274,16 @@
     width:100%;background:var(--rose);color:#fff;border:none;padding:11px;border-radius:8px;font-weight:700;
   }
 
-  .config-aviso{
-    max-width:480px;margin:40px auto;padding:20px;background:#fbe9e9;color:#8a3b3b;
-    border-radius:10px;font-size:13.5px;line-height:1.6;
+  .erro-conexao{
+    max-width:480px;margin:14px auto;padding:12px 16px;background:#fbe9e9;color:#8a3b3b;
+    border-radius:10px;font-size:13px;line-height:1.5;display:none;
   }
-  .config-aviso code{background:#fff;padding:1px 5px;border-radius:4px}
 </style>
 </head>
 <body>
 
-<div id="configAviso" class="config-aviso" style="display:none">
-  Cole a configuração do Firebase no arquivo <code>index.html</code> (constante <code>firebaseConfig</code>) antes de usar o app.
-</div>
-
-<div class="wrap" id="app" style="display:none">
+<div class="wrap" id="app">
+  <div class="erro-conexao" id="erroConexao">Não consegui falar com o servidor agora. Suas últimas ações podem não ter sido salvas — verifique a internet e tente de novo.</div>
   <header>
     <h1>🛒 Lista do Mercado</h1>
     <div class="sub" id="listaAtualLabel">carregando...</div>
@@ -347,46 +343,46 @@
   </div>
 </div>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-// ▼▼▼ COLE AQUI A CONFIGURAÇÃO DO SEU PROJETO FIREBASE (Configurações do projeto > Seus apps > SDK) ▼▼▼
-const firebaseConfig = {
-  apiKey: "COLE_AQUI",
-  authDomain: "COLE_AQUI",
-  projectId: "COLE_AQUI",
-  storageBucket: "COLE_AQUI",
-  messagingSenderId: "COLE_AQUI",
-  appId: "COLE_AQUI"
-};
-// ▲▲▲ --------------------------------------------------------------------------------------------- ▲▲▲
-
-const CATEGORIAS_PADRAO = [
-  "Hortifruti", "Açougue e Peixaria", "Padaria", "Frios e Laticínios",
-  "Mercearia", "Bebidas", "Congelados", "Limpeza",
-  "Higiene e Farmácia", "Bebês e Infantil", "Pet", "Bazar e Utilidades", "Outros"
-];
+const API = '/.netlify/functions/api';
 const NOMES_SUGERIDOS = ["Bruno", "Gabriela", "Babá", "Diarista"];
 
-if (firebaseConfig.apiKey === "COLE_AQUI") {
-  document.getElementById('configAviso').style.display = 'block';
-} else {
-  document.getElementById('app').style.display = 'block';
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+let usuario = localStorage.getItem('lm_usuario');
+let estado = { categorias: [], listaAtualId: null, itens: [], catalogo: {} };
 
-  let usuario = localStorage.getItem('lm_usuario');
-  let categorias = CATEGORIAS_PADRAO.slice();
-  let listaAtualId = null;
-  let itensAtuais = [];
-  let catalogo = {};
+const $ = (id) => document.getElementById(id);
 
-  const $ = (id) => document.getElementById(id);
+function normaliza(s){
+  return s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+}
 
-  function normaliza(s){
-    return s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+// ---------- Comunicação com o servidor ----------
+async function chamarApi(action, payload){
+  try{
+    const opts = action
+      ? { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action, payload }) }
+      : { method: 'GET' };
+    const resp = await fetch(API, opts);
+    if (!resp.ok) throw new Error('resposta ' + resp.status);
+    const novoEstado = await resp.json();
+    estado = novoEstado;
+    $('erroConexao').style.display = 'none';
+    renderTudo();
+  }catch(e){
+    $('erroConexao').style.display = 'block';
   }
+}
+
+function renderTudo(){
+  montarSelectCategorias();
+  $('listaAtualLabel').textContent = estado.listaAtualId ? ('Lista de ' + formataData(estado.listaAtualId)) : '';
+  renderItensAtuais();
+}
+
+async function carregarEstadoInicial(){
+  await chamarApi(null, null);
+  setInterval(() => chamarApi(null, null), 4000);
+}
 
   // ---------- Nome do usuário ----------
   function pedirNome(){
@@ -419,46 +415,17 @@ if (firebaseConfig.apiKey === "COLE_AQUI") {
     };
   });
 
-  // ---------- Categorias (config) ----------
-  const catRef = db.collection('config').doc('categorias');
-  catRef.onSnapshot(doc => {
-    if (doc.exists && doc.data().lista && doc.data().lista.length) {
-      categorias = doc.data().lista;
-    } else {
-      catRef.set({ lista: CATEGORIAS_PADRAO });
-      categorias = CATEGORIAS_PADRAO.slice();
-    }
-    montarSelectCategorias();
-    renderItensAtuais();
-  });
-
   function montarSelectCategorias(){
     const sel = $('categoriaSel');
+    const atual = sel.value;
     sel.innerHTML = '';
-    categorias.forEach(c => {
+    estado.categorias.forEach(c => {
       const o = document.createElement('option');
       o.value = c; o.textContent = c;
       sel.appendChild(o);
     });
+    if (estado.categorias.includes(atual)) sel.value = atual;
   }
-
-  // ---------- Lista ativa ----------
-  function dataDeHoje(){
-    const d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-  }
-
-  const ponteiroRef = db.collection('config').doc('listaAtual');
-  ponteiroRef.onSnapshot(doc => {
-    if (doc.exists && doc.data().id) {
-      listaAtualId = doc.data().id;
-    } else {
-      listaAtualId = dataDeHoje();
-      ponteiroRef.set({ id: listaAtualId, criadaEm: firebase.firestore.FieldValue.serverTimestamp() });
-    }
-    $('listaAtualLabel').textContent = 'Lista de ' + formataData(listaAtualId);
-    escutarItensAtuais();
-  });
 
   function formataData(id){
     const base = id.split('-#')[0];
@@ -466,26 +433,16 @@ if (firebaseConfig.apiKey === "COLE_AQUI") {
     return d + '/' + m + '/' + y + (id.includes('#') ? ' (nº' + id.split('#')[1] + ')' : '');
   }
 
-  let unsubItens = null;
-  function escutarItensAtuais(){
-    if (unsubItens) unsubItens();
-    unsubItens = db.collection('itens').where('listaId', '==', listaAtualId)
-      .onSnapshot(snap => {
-        itensAtuais = [];
-        snap.forEach(d => itensAtuais.push({ id: d.id, ...d.data() }));
-        renderItensAtuais();
-      });
-  }
-
   function renderItensAtuais(){
     const grupos = $('gruposAtivos');
     grupos.innerHTML = '';
-    const pendentes = itensAtuais.filter(i => !i.comprado);
-    const feitos = itensAtuais.filter(i => i.comprado);
+    const doListaAtual = estado.itens.filter(i => i.listaId === estado.listaAtualId);
+    const pendentes = doListaAtual.filter(i => !i.comprado);
+    const feitos = doListaAtual.filter(i => i.comprado);
 
-    $('vazioAtivo').style.display = itensAtuais.length === 0 ? 'block' : 'none';
+    $('vazioAtivo').style.display = doListaAtual.length === 0 ? 'block' : 'none';
 
-    categorias.forEach(cat => {
+    estado.categorias.forEach(cat => {
       const doCat = pendentes.filter(i => i.categoria === cat)
         .sort((a,b) => a.nome.localeCompare(b.nome));
       if (!doCat.length) return;
@@ -510,23 +467,18 @@ if (firebaseConfig.apiKey === "COLE_AQUI") {
     li.innerHTML = '<span class="bolinha"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' +
       '<span class="item-nome"></span><span class="item-del">✕</span>';
     li.querySelector('.item-nome').textContent = i.nome;
-    li.querySelector('.bolinha').onclick = () => db.collection('itens').doc(i.id).update({ comprado: !i.comprado });
-    li.querySelector('.item-del').onclick = (e) => { e.stopPropagation(); db.collection('itens').doc(i.id).delete(); };
+    li.querySelector('.bolinha').onclick = () => chamarApi('toggle-item', { id: i.id });
+    li.querySelector('.item-del').onclick = (e) => { e.stopPropagation(); chamarApi('delete-item', { id: i.id }); };
     return li;
   }
 
   // ---------- Catálogo (sugestões / auto-categoria) ----------
-  db.collection('catalogo').onSnapshot(snap => {
-    catalogo = {};
-    snap.forEach(d => catalogo[d.id] = d.data());
-  });
-
   const input = $('itemInput');
   const sugBox = $('sugestoes');
   input.addEventListener('input', () => {
     const termo = normaliza(input.value);
     if (!termo) { sugBox.style.display = 'none'; return; }
-    const opcoes = Object.values(catalogo)
+    const opcoes = Object.values(estado.catalogo)
       .filter(c => normaliza(c.nome).includes(termo))
       .sort((a,b) => (b.vezes||0) - (a.vezes||0))
       .slice(0, 6);
@@ -552,18 +504,8 @@ if (firebaseConfig.apiKey === "COLE_AQUI") {
     const nome = input.value.trim();
     if (!nome) return;
     const categoria = $('categoriaSel').value;
-    const chave = normaliza(nome);
 
-    db.collection('itens').add({
-      nome, categoria, comprado: false, listaId: listaAtualId,
-      criadoPor: usuario, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-    });
-
-    db.collection('catalogo').doc(chave).set({
-      nome, categoria,
-      vezes: firebase.firestore.FieldValue.increment(1),
-      ultimaVez: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
+    chamarApi('add-item', { nome, categoria, criadoPor: usuario });
 
     input.value = '';
     sugBox.style.display = 'none';
@@ -574,45 +516,35 @@ if (firebaseConfig.apiKey === "COLE_AQUI") {
 
   // ---------- Nova lista ----------
   $('novaListaBtn').onclick = () => {
-    const pendentes = itensAtuais.filter(i => !i.comprado).length;
+    const pendentes = estado.itens.filter(i => i.listaId === estado.listaAtualId && !i.comprado).length;
     const msg = pendentes
       ? 'Ainda tem ' + pendentes + ' item(ns) não marcado(s). Fechar esta lista e começar uma nova mesmo assim?'
       : 'Fechar esta lista e começar uma nova?';
     if (!confirm(msg)) return;
-
-    let novoId = dataDeHoje();
-    if (novoId === listaAtualId) {
-      let n = 2;
-      novoId = dataDeHoje() + '-#' + n;
-    }
-    ponteiroRef.set({ id: novoId, criadaEm: firebase.firestore.FieldValue.serverTimestamp() });
+    chamarApi('nova-lista', null);
   };
 
   // ---------- Histórico ----------
   function carregarHistoricoLista(){
     $('histDetalhe').style.display = 'none';
     $('histLista').style.display = 'block';
-    $('histLista').innerHTML = '<div class="vazio">Carregando...</div>';
-    db.collection('itens').orderBy('criadoEm', 'desc').limit(1000).get().then(snap => {
-      const porLista = {};
-      snap.forEach(d => {
-        const it = d.data();
-        if (!porLista[it.listaId]) porLista[it.listaId] = [];
-        porLista[it.listaId].push(it);
-      });
-      const ids = Object.keys(porLista).sort().reverse();
-      $('histLista').innerHTML = '';
-      if (!ids.length) { $('histLista').innerHTML = '<div class="vazio">Nenhuma lista arquivada ainda.</div>'; return; }
-      ids.forEach(id => {
-        const itens = porLista[id];
-        const feitos = itens.filter(i => i.comprado).length;
-        const card = document.createElement('div');
-        card.className = 'hist-card';
-        card.innerHTML = '<div class="data">' + formataData(id) + (id === listaAtualId ? ' (atual)' : '') + '</div>' +
-          '<div class="info">' + feitos + ' de ' + itens.length + ' itens comprados</div>';
-        card.onclick = () => mostrarDetalheHistorico(id, itens);
-        $('histLista').appendChild(card);
-      });
+    const porLista = {};
+    estado.itens.forEach(it => {
+      if (!porLista[it.listaId]) porLista[it.listaId] = [];
+      porLista[it.listaId].push(it);
+    });
+    const ids = Object.keys(porLista).sort().reverse();
+    $('histLista').innerHTML = '';
+    if (!ids.length) { $('histLista').innerHTML = '<div class="vazio">Nenhuma lista arquivada ainda.</div>'; return; }
+    ids.forEach(id => {
+      const itens = porLista[id];
+      const feitos = itens.filter(i => i.comprado).length;
+      const card = document.createElement('div');
+      card.className = 'hist-card';
+      card.innerHTML = '<div class="data">' + formataData(id) + (id === estado.listaAtualId ? ' (atual)' : '') + '</div>' +
+        '<div class="info">' + feitos + ' de ' + itens.length + ' itens comprados</div>';
+      card.onclick = () => mostrarDetalheHistorico(id, itens);
+      $('histLista').appendChild(card);
     });
   }
 
@@ -644,7 +576,7 @@ if (firebaseConfig.apiKey === "COLE_AQUI") {
   function renderCategoriasEdit(){
     const ul = $('catLista');
     ul.innerHTML = '';
-    categorias.forEach((c, idx) => {
+    estado.categorias.forEach((c, idx) => {
       const li = document.createElement('li');
       li.draggable = true;
       li.dataset.idx = idx;
@@ -666,10 +598,10 @@ if (firebaseConfig.apiKey === "COLE_AQUI") {
   }
   $('salvarCatBtn').onclick = () => {
     const nova = Array.from($('catLista').children).map(li => li.querySelector('span:last-child').textContent);
-    catRef.set({ lista: nova });
-    alert('Ordem salva!');
+    chamarApi('salvar-categorias', { lista: nova }).then(() => alert('Ordem salva!'));
   };
-}
+
+  carregarEstadoInicial();
 </script>
 </body>
 </html>

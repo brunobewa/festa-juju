@@ -1,0 +1,4 @@
+[build]
+  base = "lista-mercado"
+  publish = "."
+  functions = "netlify/functions"
