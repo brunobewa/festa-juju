@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lista do Mercado</title>
+<meta name="theme-color" content="#cf9f96">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mercado">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f1ede6;
+    --rose:#cf9f96;
+    --rose-soft:#ddb6ad;
+    --rose-deep:#bd8a80;
+    --ink:#2d2b2c;
+    --ink-soft:#5a5654;
+    --card:#fffdfa;
+    --line:rgba(45,43,44,.14);
+    --green:#7fae8f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:'Montserrat',sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+    padding-bottom:90px;
+  }
+  .wrap{width:100%;max-width:480px;margin:0 auto;padding:0 14px}
+
+  header{
+    padding:22px 14px 14px;
+    text-align:center;
+  }
+  header h1{
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:.04em;
+  }
+  header .sub{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:4px;
+  }
+
+  nav.tabs{
+    display:flex;
+    gap:6px;
+    margin:0 auto 14px;
+    max-width:480px;
+    padding:0 14px;
+  }
+  nav.tabs button{
+    flex:1;
+    font-family:'Montserrat',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    padding:10px 4px;
+    border:1.5px solid var(--rose-soft);
+    background:var(--card);
+    color:var(--ink-soft);
+    border-radius:10px;
+    cursor:pointer;
+  }
+  nav.tabs button.active{
+    background:var(--rose);
+    color:#fff;
+    border-color:var(--rose);
+  }
+
+  .view{display:none}
+  .view.active{display:block}
+
+  .add-card{
+    background:var(--card);
+    border-radius:14px;
+    padding:14px;
+    box-shadow:0 8px 24px rgba(90,70,60,.10);
+    margin-bottom:16px;
+    position:relative;
+  }
+  .add-row{display:flex;gap:8px}
+  .add-row input[type=text]{
+    flex:1;
+    font-family:'Montserrat',sans-serif;
+    font-size:15px;
+    padding:11px 12px;
+    border:1px solid #e8ded7;
+    border-radius:9px;
+    background:#faf7f3;
+  }
+  .add-row input:focus{outline:none;border-color:var(--rose);background:#fff}
+  .add-row button{
+    background:var(--rose);
+    color:#fff;
+    border:none;
+    border-radius:9px;
+    padding:0 16px;
+    font-size:20px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .add-row button:active{background:var(--rose-deep)}
+  select#categoriaSel{
+    margin-top:8px;
+    width:100%;
+    font-family:'Montserrat',sans-serif;
+    font-size:13px;
+    padding:8px 10px;
+    border:1px solid #e8ded7;
+    border-radius:8px;
+    background:#faf7f3;
+    color:var(--ink-soft);
+  }
+  .sugestoes{
+    position:absolute;
+    left:14px;right:14px;top:60px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:10px;
+    box-shadow:0 10px 24px rgba(0,0,0,.12);
+    max-height:180px;
+    overflow-y:auto;
+    z-index:20;
+    display:none;
+  }
+  .sugestoes div{
+    padding:10px 12px;
+    font-size:14px;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;
+  }
+  .sugestoes div:last-child{border-bottom:none}
+  .sugestoes div:active{background:var(--bg)}
+
+  .categoria-grupo{margin-bottom:18px}
+  .categoria-titulo{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--rose-deep);
+    margin:0 0 8px 4px;
+  }
+  ul.itens{list-style:none}
+  ul.itens li{
+    background:var(--card);
+    border-radius:10px;
+    padding:12px 14px;
+    margin-bottom:7px;
+    display:flex;
+    align-items:center;
+    gap:11px;
+    box-shadow:0 2px 8px rgba(90,70,60,.06);
+  }
+  .bolinha{
+    width:24px;height:24px;
+    border-radius:50%;
+    border:2px solid var(--rose-soft);
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  li.feito .bolinha{background:var(--green);border-color:var(--green)}
+  .bolinha svg{width:13px;height:13px;display:none}
+  li.feito .bolinha svg{display:block}
+  .item-nome{flex:1;font-size:15px}
+  li.feito .item-nome{text-decoration:line-through;color:var(--ink-soft)}
+  .item-del{
+    color:#c98f8f;
+    font-size:18px;
+    padding:4px 6px;
+    cursor:pointer;
+  }
+
+  .secao-feitos{margin-top:22px}
+  .secao-feitos summary{
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+    padding:6px 4px;
+  }
+
+  .vazio{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13.5px;
+    padding:30px 10px;
+    line-height:1.6;
+  }
+
+  .btn-nova-lista{
+    display:block;
+    width:calc(100% - 28px);
+    max-width:452px;
+    margin:20px auto 0;
+    background:var(--card);
+    border:1.5px solid var(--rose-soft);
+    color:var(--rose-deep);
+    font-weight:600;
+    font-size:13.5px;
+    padding:12px;
+    border-radius:10px;
+  }
+
+  .hist-card{
+    background:var(--card);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:10px;
+    box-shadow:0 4px 14px rgba(90,70,60,.08);
+    cursor:pointer;
+  }
+  .hist-card .data{font-weight:700;font-size:14.5px}
+  .hist-card .info{font-size:12.5px;color:var(--ink-soft);margin-top:3px}
+
+  .cat-lista{list-style:none}
+  .cat-lista li{
+    background:var(--card);
+    border-radius:9px;
+    padding:11px 12px;
+    margin-bottom:7px;
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    cursor:grab;
+  }
+  .cat-lista li .arrasta{color:var(--ink-soft);font-size:16px}
+  .cat-lista li.arrastando{opacity:.4}
+  .cat-info{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin:6px 4px 14px;
+    line-height:1.5;
+  }
+  .btn-salvar-cat{
+    display:block;width:100%;
+    background:var(--rose);color:#fff;border:none;
+    font-weight:700;font-size:14px;padding:12px;border-radius:10px;
+    margin-top:6px;
+  }
+
+  .modal-bg{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(45,43,44,.5);
+    z-index:100;
+    align-items:center;justify-content:center;
+    padding:20px;
+  }
+  .modal-bg.show{display:flex}
+  .modal{
+    background:#fff;border-radius:14px;padding:22px 20px;
+    width:100%;max-width:340px;text-align:center;
+  }
+  .modal h3{font-size:16px;margin-bottom:12px}
+  .modal .nomes{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
+  .modal .nomes button{
+    border:1.5px solid var(--rose-soft);background:#fff;color:var(--ink);
+    padding:9px 14px;border-radius:20px;font-size:13.5px;font-family:'Montserrat',sans-serif;
+  }
+  .modal input{
+    width:100%;padding:10px;border:1px solid #e8ded7;border-radius:8px;margin-bottom:10px;font-size:14px;
+  }
+  .modal .ok-btn{
+    width:100%;background:var(--rose);color:#fff;border:none;padding:11px;border-radius:8px;font-weight:700;
+  }
+
+  .config-aviso{
+    max-width:480px;margin:40px auto;padding:20px;background:#fbe9e9;color:#8a3b3b;
+    border-radius:10px;font-size:13.5px;line-height:1.6;
+  }
+  .config-aviso code{background:#fff;padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+
+<div id="configAviso" class="config-aviso" style="display:none">
+  Cole a configuração do Firebase no arquivo <code>index.html</code> (constante <code>firebaseConfig</code>) antes de usar o app.
+</div>
+
+<div class="wrap" id="app" style="display:none">
+  <header>
+    <h1>🛒 Lista do Mercado</h1>
+    <div class="sub" id="listaAtualLabel">carregando...</div>
+  </header>
+
+  <nav class="tabs">
+    <button data-view="atual" class="active">Lista</button>
+    <button data-view="historico">Histórico</button>
+    <button data-view="categorias">Corredores</button>
+  </nav>
+
+  <!-- LISTA ATUAL -->
+  <section class="view active" id="view-atual">
+    <div class="add-card">
+      <div class="add-row">
+        <input type="text" id="itemInput" placeholder="Adicionar item...">
+        <button id="addBtn">+</button>
+      </div>
+      <select id="categoriaSel"></select>
+      <div class="sugestoes" id="sugestoes"></div>
+    </div>
+
+    <div id="gruposAtivos"></div>
+    <div id="vazioAtivo" class="vazio" style="display:none">Nenhum item ainda. Adicione o primeiro acima 👆</div>
+
+    <details class="secao-feitos" id="secaoFeitos" style="display:none">
+      <summary>Já peguei (<span id="qtdFeitos">0</span>)</summary>
+      <ul class="itens" id="listaFeitos"></ul>
+    </details>
+
+    <button class="btn-nova-lista" id="novaListaBtn">Fechar esta lista e começar uma nova</button>
+  </section>
+
+  <!-- HISTORICO -->
+  <section class="view" id="view-historico">
+    <div id="histLista"></div>
+    <div id="histDetalhe" style="display:none">
+      <button class="btn-nova-lista" id="voltarHistBtn" style="margin-bottom:14px">← Voltar</button>
+      <div id="histDetalheConteudo"></div>
+    </div>
+  </section>
+
+  <!-- CATEGORIAS -->
+  <section class="view" id="view-categorias">
+    <p class="cat-info">Arraste para colocar os corredores na ordem em que você anda no mercado. A lista principal passa a seguir essa ordem para todo mundo.</p>
+    <ul class="cat-lista" id="catLista"></ul>
+    <button class="btn-salvar-cat" id="salvarCatBtn">Salvar ordem</button>
+  </section>
+</div>
+
+<div class="modal-bg" id="modalNome">
+  <div class="modal">
+    <h3>Quem é você?</h3>
+    <div class="nomes" id="modalNomesBtns"></div>
+    <input type="text" id="modalNomeCustom" placeholder="Outro nome">
+    <button class="ok-btn" id="modalNomeOk">Confirmar</button>
+  </div>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+// ▼▼▼ COLE AQUI A CONFIGURAÇÃO DO SEU PROJETO FIREBASE (Configurações do projeto > Seus apps > SDK) ▼▼▼
+const firebaseConfig = {
+  apiKey: "COLE_AQUI",
+  authDomain: "COLE_AQUI",
+  projectId: "COLE_AQUI",
+  storageBucket: "COLE_AQUI",
+  messagingSenderId: "COLE_AQUI",
+  appId: "COLE_AQUI"
+};
+// ▲▲▲ --------------------------------------------------------------------------------------------- ▲▲▲
+
+const CATEGORIAS_PADRAO = [
+  "Hortifruti", "Açougue e Peixaria", "Padaria", "Frios e Laticínios",
+  "Mercearia", "Bebidas", "Congelados", "Limpeza",
+  "Higiene e Farmácia", "Bebês e Infantil", "Pet", "Bazar e Utilidades", "Outros"
+];
+const NOMES_SUGERIDOS = ["Bruno", "Gabriela", "Babá", "Diarista"];
+
+if (firebaseConfig.apiKey === "COLE_AQUI") {
+  document.getElementById('configAviso').style.display = 'block';
+} else {
+  document.getElementById('app').style.display = 'block';
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let usuario = localStorage.getItem('lm_usuario');
+  let categorias = CATEGORIAS_PADRAO.slice();
+  let listaAtualId = null;
+  let itensAtuais = [];
+  let catalogo = {};
+
+  const $ = (id) => document.getElementById(id);
+
+  function normaliza(s){
+    return s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  }
+
+  // ---------- Nome do usuário ----------
+  function pedirNome(){
+    const box = $('modalNomesBtns');
+    box.innerHTML = '';
+    NOMES_SUGERIDOS.forEach(n => {
+      const b = document.createElement('button');
+      b.textContent = n;
+      b.onclick = () => { usuario = n; localStorage.setItem('lm_usuario', n); $('modalNome').classList.remove('show'); };
+      box.appendChild(b);
+    });
+    $('modalNome').classList.add('show');
+  }
+  $('modalNomeOk').onclick = () => {
+    const custom = $('modalNomeCustom').value.trim();
+    if (custom) { usuario = custom; localStorage.setItem('lm_usuario', custom); }
+    $('modalNome').classList.remove('show');
+  };
+  if (!usuario) pedirNome();
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('nav.tabs button').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      btn.classList.add('active');
+      $('view-' + btn.dataset.view).classList.add('active');
+      if (btn.dataset.view === 'historico') carregarHistoricoLista();
+      if (btn.dataset.view === 'categorias') renderCategoriasEdit();
+    };
+  });
+
+  // ---------- Categorias (config) ----------
+  const catRef = db.collection('config').doc('categorias');
+  catRef.onSnapshot(doc => {
+    if (doc.exists && doc.data().lista && doc.data().lista.length) {
+      categorias = doc.data().lista;
+    } else {
+      catRef.set({ lista: CATEGORIAS_PADRAO });
+      categorias = CATEGORIAS_PADRAO.slice();
+    }
+    montarSelectCategorias();
+    renderItensAtuais();
+  });
+
+  function montarSelectCategorias(){
+    const sel = $('categoriaSel');
+    sel.innerHTML = '';
+    categorias.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c; o.textContent = c;
+      sel.appendChild(o);
+    });
+  }
+
+  // ---------- Lista ativa ----------
+  function dataDeHoje(){
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  const ponteiroRef = db.collection('config').doc('listaAtual');
+  ponteiroRef.onSnapshot(doc => {
+    if (doc.exists && doc.data().id) {
+      listaAtualId = doc.data().id;
+    } else {
+      listaAtualId = dataDeHoje();
+      ponteiroRef.set({ id: listaAtualId, criadaEm: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+    $('listaAtualLabel').textContent = 'Lista de ' + formataData(listaAtualId);
+    escutarItensAtuais();
+  });
+
+  function formataData(id){
+    const base = id.split('-#')[0];
+    const [y,m,d] = base.split('-');
+    return d + '/' + m + '/' + y + (id.includes('#') ? ' (nº' + id.split('#')[1] + ')' : '');
+  }
+
+  let unsubItens = null;
+  function escutarItensAtuais(){
+    if (unsubItens) unsubItens();
+    unsubItens = db.collection('itens').where('listaId', '==', listaAtualId)
+      .onSnapshot(snap => {
+        itensAtuais = [];
+        snap.forEach(d => itensAtuais.push({ id: d.id, ...d.data() }));
+        renderItensAtuais();
+      });
+  }
+
+  function renderItensAtuais(){
+    const grupos = $('gruposAtivos');
+    grupos.innerHTML = '';
+    const pendentes = itensAtuais.filter(i => !i.comprado);
+    const feitos = itensAtuais.filter(i => i.comprado);
+
+    $('vazioAtivo').style.display = itensAtuais.length === 0 ? 'block' : 'none';
+
+    categorias.forEach(cat => {
+      const doCat = pendentes.filter(i => i.categoria === cat)
+        .sort((a,b) => a.nome.localeCompare(b.nome));
+      if (!doCat.length) return;
+      const div = document.createElement('div');
+      div.className = 'categoria-grupo';
+      div.innerHTML = '<div class="categoria-titulo">' + cat + '</div><ul class="itens"></ul>';
+      const ul = div.querySelector('ul');
+      doCat.forEach(i => ul.appendChild(itemLi(i)));
+      grupos.appendChild(div);
+    });
+
+    $('secaoFeitos').style.display = feitos.length ? 'block' : 'none';
+    $('qtdFeitos').textContent = feitos.length;
+    const ulFeitos = $('listaFeitos');
+    ulFeitos.innerHTML = '';
+    feitos.sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(i => ulFeitos.appendChild(itemLi(i)));
+  }
+
+  function itemLi(i){
+    const li = document.createElement('li');
+    if (i.comprado) li.classList.add('feito');
+    li.innerHTML = '<span class="bolinha"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' +
+      '<span class="item-nome"></span><span class="item-del">✕</span>';
+    li.querySelector('.item-nome').textContent = i.nome;
+    li.querySelector('.bolinha').onclick = () => db.collection('itens').doc(i.id).update({ comprado: !i.comprado });
+    li.querySelector('.item-del').onclick = (e) => { e.stopPropagation(); db.collection('itens').doc(i.id).delete(); };
+    return li;
+  }
+
+  // ---------- Catálogo (sugestões / auto-categoria) ----------
+  db.collection('catalogo').onSnapshot(snap => {
+    catalogo = {};
+    snap.forEach(d => catalogo[d.id] = d.data());
+  });
+
+  const input = $('itemInput');
+  const sugBox = $('sugestoes');
+  input.addEventListener('input', () => {
+    const termo = normaliza(input.value);
+    if (!termo) { sugBox.style.display = 'none'; return; }
+    const opcoes = Object.values(catalogo)
+      .filter(c => normaliza(c.nome).includes(termo))
+      .sort((a,b) => (b.vezes||0) - (a.vezes||0))
+      .slice(0, 6);
+    if (!opcoes.length) { sugBox.style.display = 'none'; return; }
+    sugBox.innerHTML = '';
+    opcoes.forEach(o => {
+      const div = document.createElement('div');
+      div.textContent = o.nome + ' · ' + o.categoria;
+      div.onclick = () => {
+        input.value = o.nome;
+        $('categoriaSel').value = o.categoria;
+        sugBox.style.display = 'none';
+      };
+      sugBox.appendChild(div);
+    });
+    sugBox.style.display = 'block';
+  });
+  document.addEventListener('click', (e) => {
+    if (!sugBox.contains(e.target) && e.target !== input) sugBox.style.display = 'none';
+  });
+
+  function adicionarItem(){
+    const nome = input.value.trim();
+    if (!nome) return;
+    const categoria = $('categoriaSel').value;
+    const chave = normaliza(nome);
+
+    db.collection('itens').add({
+      nome, categoria, comprado: false, listaId: listaAtualId,
+      criadoPor: usuario, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    db.collection('catalogo').doc(chave).set({
+      nome, categoria,
+      vezes: firebase.firestore.FieldValue.increment(1),
+      ultimaVez: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    input.value = '';
+    sugBox.style.display = 'none';
+    input.focus();
+  }
+  $('addBtn').onclick = adicionarItem;
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') adicionarItem(); });
+
+  // ---------- Nova lista ----------
+  $('novaListaBtn').onclick = () => {
+    const pendentes = itensAtuais.filter(i => !i.comprado).length;
+    const msg = pendentes
+      ? 'Ainda tem ' + pendentes + ' item(ns) não marcado(s). Fechar esta lista e começar uma nova mesmo assim?'
+      : 'Fechar esta lista e começar uma nova?';
+    if (!confirm(msg)) return;
+
+    let novoId = dataDeHoje();
+    if (novoId === listaAtualId) {
+      let n = 2;
+      novoId = dataDeHoje() + '-#' + n;
+    }
+    ponteiroRef.set({ id: novoId, criadaEm: firebase.firestore.FieldValue.serverTimestamp() });
+  };
+
+  // ---------- Histórico ----------
+  function carregarHistoricoLista(){
+    $('histDetalhe').style.display = 'none';
+    $('histLista').style.display = 'block';
+    $('histLista').innerHTML = '<div class="vazio">Carregando...</div>';
+    db.collection('itens').orderBy('criadoEm', 'desc').limit(1000).get().then(snap => {
+      const porLista = {};
+      snap.forEach(d => {
+        const it = d.data();
+        if (!porLista[it.listaId]) porLista[it.listaId] = [];
+        porLista[it.listaId].push(it);
+      });
+      const ids = Object.keys(porLista).sort().reverse();
+      $('histLista').innerHTML = '';
+      if (!ids.length) { $('histLista').innerHTML = '<div class="vazio">Nenhuma lista arquivada ainda.</div>'; return; }
+      ids.forEach(id => {
+        const itens = porLista[id];
+        const feitos = itens.filter(i => i.comprado).length;
+        const card = document.createElement('div');
+        card.className = 'hist-card';
+        card.innerHTML = '<div class="data">' + formataData(id) + (id === listaAtualId ? ' (atual)' : '') + '</div>' +
+          '<div class="info">' + feitos + ' de ' + itens.length + ' itens comprados</div>';
+        card.onclick = () => mostrarDetalheHistorico(id, itens);
+        $('histLista').appendChild(card);
+      });
+    });
+  }
+
+  function mostrarDetalheHistorico(id, itens){
+    $('histLista').style.display = 'none';
+    $('histDetalhe').style.display = 'block';
+    const conteudo = $('histDetalheConteudo');
+    conteudo.innerHTML = '<h3 style="margin-bottom:12px">' + formataData(id) + '</h3>';
+    const porCat = {};
+    itens.forEach(i => { (porCat[i.categoria] = porCat[i.categoria] || []).push(i); });
+    Object.keys(porCat).sort().forEach(cat => {
+      const div = document.createElement('div');
+      div.className = 'categoria-grupo';
+      div.innerHTML = '<div class="categoria-titulo">' + cat + '</div><ul class="itens"></ul>';
+      const ul = div.querySelector('ul');
+      porCat[cat].sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(i => {
+        const li = document.createElement('li');
+        if (i.comprado) li.classList.add('feito');
+        li.innerHTML = '<span class="bolinha"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span><span class="item-nome"></span>';
+        li.querySelector('.item-nome').textContent = i.nome;
+        ul.appendChild(li);
+      });
+      conteudo.appendChild(div);
+    });
+  }
+  $('voltarHistBtn').onclick = carregarHistoricoLista;
+
+  // ---------- Categorias (arrastar/editar) ----------
+  function renderCategoriasEdit(){
+    const ul = $('catLista');
+    ul.innerHTML = '';
+    categorias.forEach((c, idx) => {
+      const li = document.createElement('li');
+      li.draggable = true;
+      li.dataset.idx = idx;
+      li.innerHTML = '<span class="arrasta">☰</span><span></span>';
+      li.querySelector('span:last-child').textContent = c;
+      li.addEventListener('dragstart', () => li.classList.add('arrastando'));
+      li.addEventListener('dragend', () => li.classList.remove('arrastando'));
+      li.addEventListener('dragover', e => {
+        e.preventDefault();
+        const arrastando = ul.querySelector('.arrastando');
+        if (arrastando && arrastando !== li) {
+          const rect = li.getBoundingClientRect();
+          const antes = (e.clientY - rect.top) < rect.height / 2;
+          ul.insertBefore(arrastando, antes ? li : li.nextSibling);
+        }
+      });
+      ul.appendChild(li);
+    });
+  }
+  $('salvarCatBtn').onclick = () => {
+    const nova = Array.from($('catLista').children).map(li => li.querySelector('span:last-child').textContent);
+    catRef.set({ lista: nova });
+    alert('Ordem salva!');
+  };
+}
+</script>
+</body>
+</html>
