@@ -69,6 +69,13 @@ function normalizarEstado(estado) {
     estado.listas[estado.listaAtualId] = { criadaEm: Date.now(), status: 'aberta', fechadaEm: null, completa: null };
   }
   if (typeof estado.historicoImportado !== 'boolean') estado.historicoImportado = false;
+
+  if (estado.listas[SEMENTE_ID]) {
+    estado.listas[SEMENTE_ID].fechadoPor = 'Bruno';
+    estado.itens.forEach(i => {
+      if (i.listaId === SEMENTE_ID) i.criadoPor = 'Bruno';
+    });
+  }
   return estado;
 }
 
@@ -158,7 +165,8 @@ async function processar(event) {
         ...estado.listas[idAtual],
         status: 'fechada',
         fechadaEm: Date.now(),
-        completa
+        completa,
+        fechadoPor: (payload && payload.fechadoPor) || null
       };
       const novoId = proximoIdLivre(estado);
       if (!completa) {
@@ -173,7 +181,7 @@ async function processar(event) {
     case 'reabrir-lista': {
       const id = payload && payload.id;
       if (!id || !estado.listas[id]) return resposta(400, { erro: 'lista não encontrada' });
-      estado.listas[id] = { ...estado.listas[id], status: 'aberta', fechadaEm: null, completa: null };
+      estado.listas[id] = { ...estado.listas[id], status: 'aberta', fechadaEm: null, completa: null, fechadoPor: null };
       estado.listaAtualId = id;
       break;
     }
@@ -192,7 +200,7 @@ async function processar(event) {
           categoria,
           comprado: true,
           listaId: SEMENTE_ID,
-          criadoPor: 'Gabriela',
+          criadoPor: 'Bruno',
           criadoEm: base + idx
         });
         const chave = normaliza(nome);
@@ -204,7 +212,7 @@ async function processar(event) {
           ultimaVez: base + idx
         };
       });
-      estado.listas[SEMENTE_ID] = { criadaEm: base, status: 'fechada', fechadaEm: base, completa: true };
+      estado.listas[SEMENTE_ID] = { criadaEm: base, status: 'fechada', fechadaEm: base, completa: true, fechadoPor: 'Bruno' };
       estado.historicoImportado = true;
       break;
     }

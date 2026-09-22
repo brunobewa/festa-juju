@@ -486,12 +486,50 @@ async function carregarEstadoInicial(){
     return li;
   }
 
+  // ---------- Categorização automática ----------
+  const DICIONARIO_CATEGORIAS = [
+    ['Hortifruti', ['banana','maca','laranja','limao','abacaxi','uva','mamao','melancia','morango','pera','manga','abacate','tomate','cebola','alho','batata','cenoura','alface','couve','brocolis','pepino','pimentao','chuchu','abobrinha','abobora','beterraba','rucula','espinafre','salsa','cebolinha','coentro','gengibre','mandioca','milho verde','ervilha fresca','fruta','verdura','legume']],
+    ['Açougue e Peixaria', ['carne','frango','peito de frango','coxa','sobrecoxa','file','picanha','alcatra','costela','linguica','bacon','peixe','salmao','tilapia','camarao','carne moida','bisteca','cupim','fraldinha','maminha']],
+    ['Padaria', ['pao','paozinho','baguete','bisnaguinha','croissant','bolo','magic toast','torrada','rosca']],
+    ['Frios e Laticínios', ['leite','queijo','mussarela','requeijao','iogurte','manteiga','margarina','presunto','mortadela','cottage','ricota','cream cheese','nata','creme de leite','ovo']],
+    ['Bebidas', ['agua','suco','refrigerante','cerveja','vinho','energetico','isotonico']],
+    ['Congelados', ['sorvete','lasanha congelada','hamburguer congelado','nuggets','batata congelada','polpa de fruta','pao de queijo congelado']],
+    ['Limpeza', ['detergente','sabao em po','sabao','amaciante','desinfetante','agua sanitaria','alvejante','limpador','esponja','saco de lixo','papel toalha']],
+    ['Higiene e Farmácia', ['papel higienico','sabonete','shampoo','condicionador','creme dental','escova de dente','fio dental','desodorante','absorvente','algodao','curativo','remedio','protetor solar']],
+    ['Bebês e Infantil', ['fralda','formula','aptanutri','lenco umedecido','pomada','mamadeira','papinha']],
+    ['Pet', ['racao','petisco','areia de gato','tapete higienico','biscoitos juju']],
+    ['Bazar e Utilidades', ['pilha','lampada','vela','guardanapo','papel aluminio','filme plastico','prendedor de roupa']],
+    ['Mercearia', ['arroz','feijao','grao de bico','macarrao','massa','molho de tomate','extrato de tomate','oleo','azeite','vinagre','acucar','sal','farinha','tahine','palmito','atum','sardinha','biscoito','bolacha','achocolatado','cafe','cha','mel','granola','aveia','tapioca','castanha','amendoim','pipoca','fermento','maionese','ketchup','mostarda']]
+  ];
+
+  function adivinharCategoria(nome){
+    const alvo = normaliza(nome);
+    if (!alvo) return null;
+    for (const [categoria, palavras] of DICIONARIO_CATEGORIAS){
+      if (palavras.some(p => alvo.includes(p))) return categoria;
+    }
+    return null;
+  }
+
   // ---------- Catálogo (sugestões / auto-categoria) ----------
   const input = $('itemInput');
   const sugBox = $('sugestoes');
+  const categoriaSel = $('categoriaSel');
+  let categoriaEscolhidaManualmente = false;
+  categoriaSel.addEventListener('change', () => { categoriaEscolhidaManualmente = true; });
+
   input.addEventListener('input', () => {
     const termo = normaliza(input.value);
     if (!termo) { sugBox.style.display = 'none'; return; }
+
+    if (!categoriaEscolhidaManualmente) {
+      const chaveExata = Object.keys(estado.catalogo).find(k => k === termo);
+      const categoriaConhecida = chaveExata ? estado.catalogo[chaveExata].categoria : adivinharCategoria(input.value);
+      if (categoriaConhecida && estado.categorias.includes(categoriaConhecida)) {
+        categoriaSel.value = categoriaConhecida;
+      }
+    }
+
     const opcoes = Object.values(estado.catalogo)
       .filter(c => normaliza(c.nome).includes(termo))
       .sort((a,b) => (b.vezes||0) - (a.vezes||0))
@@ -503,7 +541,8 @@ async function carregarEstadoInicial(){
       div.textContent = o.nome + ' · ' + o.categoria;
       div.onclick = () => {
         input.value = o.nome;
-        $('categoriaSel').value = o.categoria;
+        categoriaSel.value = o.categoria;
+        categoriaEscolhidaManualmente = true;
         sugBox.style.display = 'none';
       };
       sugBox.appendChild(div);
@@ -517,11 +556,12 @@ async function carregarEstadoInicial(){
   function adicionarItem(){
     const nome = input.value.trim();
     if (!nome) return;
-    const categoria = $('categoriaSel').value;
+    const categoria = categoriaSel.value;
 
     chamarApi('add-item', { nome, categoria, criadoPor: usuario });
 
     input.value = '';
+    categoriaEscolhidaManualmente = false;
     sugBox.style.display = 'none';
     input.focus();
   }
@@ -533,11 +573,11 @@ async function carregarEstadoInicial(){
   $('fecharCancelarBtn').onclick = () => $('modalFechar').classList.remove('show');
   $('fecharCompletaBtn').onclick = () => {
     $('modalFechar').classList.remove('show');
-    chamarApi('fechar-lista', { completa: true });
+    chamarApi('fechar-lista', { completa: true, fechadoPor: usuario });
   };
   $('fecharIncompletaBtn').onclick = () => {
     $('modalFechar').classList.remove('show');
-    chamarApi('fechar-lista', { completa: false });
+    chamarApi('fechar-lista', { completa: false, fechadoPor: usuario });
   };
 
   // ---------- Histórico ----------
@@ -573,7 +613,14 @@ async function carregarEstadoInicial(){
     $('histDetalhe').style.display = 'block';
     const conteudo = $('histDetalheConteudo');
     const info = estado.listas[id] || {};
-    conteudo.innerHTML = '<h3 style="margin-bottom:12px">' + formataData(id) + '</h3>';
+    const colaboradores = [...new Set(itens.map(i => i.criadoPor).filter(Boolean))];
+    conteudo.innerHTML = '<h3 style="margin-bottom:6px">' + formataData(id) + '</h3>';
+    if (colaboradores.length) {
+      conteudo.innerHTML += '<p class="cat-info" style="margin-top:0">Colaboraram: ' + colaboradores.join(', ') + '</p>';
+    }
+    if (info.status === 'fechada' && info.fechadoPor) {
+      conteudo.innerHTML += '<p class="cat-info" style="margin-top:0">Fechada por: ' + info.fechadoPor + '</p>';
+    }
     if (id !== estado.listaAtualId && info.status === 'fechada') {
       const btn = document.createElement('button');
       btn.className = 'btn-nova-lista';
