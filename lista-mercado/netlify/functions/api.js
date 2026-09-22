@@ -160,6 +160,11 @@ async function processar(event) {
         completa
       };
       const novoId = proximoIdLivre(estado);
+      if (!completa) {
+        estado.itens.forEach(i => {
+          if (i.listaId === idAtual && !i.comprado) i.listaId = novoId;
+        });
+      }
       estado.listaAtualId = novoId;
       estado.listas[novoId] = { criadaEm: Date.now(), status: 'aberta', fechadaEm: null, completa: null };
       break;
