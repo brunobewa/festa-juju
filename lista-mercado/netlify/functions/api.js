@@ -28,6 +28,12 @@ const SEMENTE_ITENS = [
   ['Água de coco', 'Bebidas']
 ];
 
+function capitalizar(s) {
+  const t = String(s).trim();
+  if (!t) return t;
+  return t.charAt(0).toUpperCase() + t.slice(1).toLowerCase();
+}
+
 function dataDeHoje() {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -76,6 +82,9 @@ function normalizarEstado(estado) {
       if (i.listaId === SEMENTE_ID) i.criadoPor = 'Bruno';
     });
   }
+
+  estado.itens.forEach(i => { i.nome = capitalizar(i.nome); });
+  Object.values(estado.catalogo).forEach(c => { c.nome = capitalizar(c.nome); });
   return estado;
 }
 
@@ -125,7 +134,7 @@ async function processar(event) {
 
   switch (action) {
     case 'add-item': {
-      const nome = (payload && payload.nome || '').trim();
+      const nome = capitalizar((payload && payload.nome) || '');
       if (!nome) return resposta(400, { erro: 'nome obrigatório' });
       const categoria = (payload && payload.categoria) || estado.categorias[estado.categorias.length - 1];
       const item = {
