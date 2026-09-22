@@ -375,12 +375,13 @@ async function chamarApi(action, payload){
       ? { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action, payload }) }
       : { method: 'GET' };
     const resp = await fetch(API, opts);
-    if (!resp.ok) throw new Error('resposta ' + resp.status);
-    const novoEstado = await resp.json();
-    estado = novoEstado;
+    const corpo = await resp.json().catch(() => null);
+    if (!resp.ok) throw new Error((corpo && corpo.erro) || ('resposta ' + resp.status));
+    estado = corpo;
     $('erroConexao').style.display = 'none';
     renderTudo();
   }catch(e){
+    $('erroConexao').textContent = 'Não consegui falar com o servidor: ' + e.message;
     $('erroConexao').style.display = 'block';
   }
 }

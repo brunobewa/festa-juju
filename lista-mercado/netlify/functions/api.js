@@ -81,6 +81,14 @@ function resposta(status, obj) {
 }
 
 exports.handler = async (event) => {
+  try {
+    return await processar(event);
+  } catch (e) {
+    return resposta(500, { erro: 'Falha no servidor: ' + (e && e.message ? e.message : String(e)) });
+  }
+};
+
+async function processar(event) {
   const store = getStore('lista-mercado');
 
   let estado = await store.get(CHAVE_ESTADO, { type: 'json' });
@@ -200,4 +208,4 @@ exports.handler = async (event) => {
 
   await store.setJSON(CHAVE_ESTADO, estado);
   return resposta(200, estado);
-};
+}
