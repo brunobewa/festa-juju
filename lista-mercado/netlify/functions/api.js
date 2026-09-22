@@ -1,4 +1,4 @@
-const { getStore } = require('@netlify/blobs');
+const { getStore, connectLambda } = require('@netlify/blobs');
 
 const CATEGORIAS_PADRAO = [
   'Hortifruti', 'Açougue e Peixaria', 'Padaria', 'Frios e Laticínios',
@@ -89,6 +89,7 @@ exports.handler = async (event) => {
 };
 
 async function processar(event) {
+  connectLambda(event);
   const store = getStore('lista-mercado');
 
   let estado = await store.get(CHAVE_ESTADO, { type: 'json' });
