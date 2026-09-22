@@ -314,7 +314,7 @@
       <ul class="itens" id="listaFeitos"></ul>
     </details>
 
-    <button class="btn-nova-lista" id="novaListaBtn">Fechar esta lista e começar uma nova</button>
+    <button class="btn-nova-lista" id="novaListaBtn">Fechar esta lista</button>
   </section>
 
   <!-- HISTORICO -->
@@ -343,9 +343,21 @@
   </div>
 </div>
 
+<div class="modal-bg" id="modalFechar">
+  <div class="modal">
+    <h3>Fechar esta lista</h3>
+    <p style="font-size:13.5px;color:var(--ink-soft);margin-bottom:16px">Você comprou tudo que estava nela?</p>
+    <div class="nomes" style="flex-direction:column">
+      <button class="ok-btn" id="fecharCompletaBtn" style="margin-bottom:8px">Comprei tudo ✅</button>
+      <button class="ok-btn" id="fecharIncompletaBtn" style="background:var(--card);color:var(--rose-deep);border:1.5px solid var(--rose-soft)">Ficou faltando algo</button>
+    </div>
+    <button id="fecharCancelarBtn" style="margin-top:14px;background:none;border:none;color:var(--ink-soft);font-size:13px">Cancelar</button>
+  </div>
+</div>
+
 <script>
 const API = '/.netlify/functions/api';
-const NOMES_SUGERIDOS = ["Bruno", "Gabriela", "Babá", "Diarista"];
+const NOMES_SUGERIDOS = ["Bruno", "Gabriela", "Cintya", "Rose"];
 
 let usuario = localStorage.getItem('lm_usuario');
 let estado = { categorias: [], listaAtualId: null, itens: [], catalogo: {} };
@@ -381,6 +393,7 @@ function renderTudo(){
 
 async function carregarEstadoInicial(){
   await chamarApi(null, null);
+  if (!estado.historicoImportado) await chamarApi('importar-historico-semente', null);
   setInterval(() => chamarApi(null, null), 4000);
 }
 
@@ -514,14 +527,16 @@ async function carregarEstadoInicial(){
   $('addBtn').onclick = adicionarItem;
   input.addEventListener('keydown', e => { if (e.key === 'Enter') adicionarItem(); });
 
-  // ---------- Nova lista ----------
-  $('novaListaBtn').onclick = () => {
-    const pendentes = estado.itens.filter(i => i.listaId === estado.listaAtualId && !i.comprado).length;
-    const msg = pendentes
-      ? 'Ainda tem ' + pendentes + ' item(ns) não marcado(s). Fechar esta lista e começar uma nova mesmo assim?'
-      : 'Fechar esta lista e começar uma nova?';
-    if (!confirm(msg)) return;
-    chamarApi('nova-lista', null);
+  // ---------- Fechar lista ----------
+  $('novaListaBtn').onclick = () => $('modalFechar').classList.add('show');
+  $('fecharCancelarBtn').onclick = () => $('modalFechar').classList.remove('show');
+  $('fecharCompletaBtn').onclick = () => {
+    $('modalFechar').classList.remove('show');
+    chamarApi('fechar-lista', { completa: true });
+  };
+  $('fecharIncompletaBtn').onclick = () => {
+    $('modalFechar').classList.remove('show');
+    chamarApi('fechar-lista', { completa: false });
   };
 
   // ---------- Histórico ----------
@@ -539,10 +554,14 @@ async function carregarEstadoInicial(){
     ids.forEach(id => {
       const itens = porLista[id];
       const feitos = itens.filter(i => i.comprado).length;
+      const info = estado.listas[id] || {};
+      let status = 'Em aberto';
+      if (id === estado.listaAtualId) status = 'Atual';
+      else if (info.status === 'fechada') status = info.completa ? 'Fechada · comprou tudo' : 'Fechada · ficou faltando algo';
       const card = document.createElement('div');
       card.className = 'hist-card';
-      card.innerHTML = '<div class="data">' + formataData(id) + (id === estado.listaAtualId ? ' (atual)' : '') + '</div>' +
-        '<div class="info">' + feitos + ' de ' + itens.length + ' itens comprados</div>';
+      card.innerHTML = '<div class="data">' + formataData(id) + '</div>' +
+        '<div class="info">' + status + ' · ' + feitos + ' de ' + itens.length + ' itens comprados</div>';
       card.onclick = () => mostrarDetalheHistorico(id, itens);
       $('histLista').appendChild(card);
     });
@@ -552,7 +571,20 @@ async function carregarEstadoInicial(){
     $('histLista').style.display = 'none';
     $('histDetalhe').style.display = 'block';
     const conteudo = $('histDetalheConteudo');
+    const info = estado.listas[id] || {};
     conteudo.innerHTML = '<h3 style="margin-bottom:12px">' + formataData(id) + '</h3>';
+    if (id !== estado.listaAtualId && info.status === 'fechada') {
+      const btn = document.createElement('button');
+      btn.className = 'btn-nova-lista';
+      btn.style.marginBottom = '16px';
+      btn.textContent = 'Reabrir esta lista';
+      btn.onclick = () => {
+        chamarApi('reabrir-lista', { id }).then(() => {
+          document.querySelector('nav.tabs button[data-view="atual"]').click();
+        });
+      };
+      conteudo.appendChild(btn);
+    }
     const porCat = {};
     itens.forEach(i => { (porCat[i.categoria] = porCat[i.categoria] || []).push(i); });
     Object.keys(porCat).sort().forEach(cat => {
