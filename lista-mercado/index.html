@@ -234,6 +234,17 @@
     cursor:grab;
   }
   .cat-lista li .arrasta{color:var(--ink-soft);font-size:16px}
+  .cat-lista li span.nome-cat{flex:1}
+  .cat-lista li .item-del{cursor:pointer}
+  .add-cat-row{display:flex;gap:8px;margin:14px 0}
+  .add-cat-row input{
+    flex:1;font-family:'Montserrat',sans-serif;font-size:14px;padding:10px 12px;
+    border:1px solid #e8ded7;border-radius:9px;background:#faf7f3;
+  }
+  .add-cat-row button{
+    background:var(--rose);color:#fff;border:none;border-radius:9px;
+    padding:0 16px;font-size:20px;font-weight:700;cursor:pointer;
+  }
   .cat-lista li.arrastando{opacity:.4}
   .cat-info{
     font-size:12px;
@@ -328,9 +339,13 @@
 
   <!-- CATEGORIAS -->
   <section class="view" id="view-categorias">
-    <p class="cat-info">Arraste para colocar os corredores na ordem em que você anda no mercado. A lista principal passa a seguir essa ordem para todo mundo.</p>
+    <p class="cat-info">Arraste para colocar os corredores na ordem em que você anda no mercado, remova os que não usa e adicione novos. A lista principal passa a seguir essa ordem para todo mundo.</p>
     <ul class="cat-lista" id="catLista"></ul>
-    <button class="btn-salvar-cat" id="salvarCatBtn">Salvar ordem</button>
+    <div class="add-cat-row">
+      <input type="text" id="novaCategoriaInput" placeholder="Novo corredor...">
+      <button id="addCategoriaBtn">+</button>
+    </div>
+    <button class="btn-salvar-cat" id="salvarCatBtn">Salvar</button>
   </section>
 </div>
 
@@ -652,16 +667,16 @@ async function carregarEstadoInicial(){
   }
   $('voltarHistBtn').onclick = carregarHistoricoLista;
 
-  // ---------- Categorias (arrastar/editar) ----------
+  // ---------- Categorias (arrastar/editar/excluir/adicionar) ----------
   function renderCategoriasEdit(){
     const ul = $('catLista');
     ul.innerHTML = '';
-    estado.categorias.forEach((c, idx) => {
+    estado.categorias.forEach(c => {
       const li = document.createElement('li');
       li.draggable = true;
-      li.dataset.idx = idx;
-      li.innerHTML = '<span class="arrasta">☰</span><span></span>';
-      li.querySelector('span:last-child').textContent = c;
+      li.innerHTML = '<span class="arrasta">☰</span><span class="nome-cat"></span><span class="item-del">✕</span>';
+      li.querySelector('.nome-cat').textContent = c;
+      li.querySelector('.item-del').onclick = () => li.remove();
       li.addEventListener('dragstart', () => li.classList.add('arrastando'));
       li.addEventListener('dragend', () => li.classList.remove('arrastando'));
       li.addEventListener('dragover', e => {
@@ -676,9 +691,41 @@ async function carregarEstadoInicial(){
       ul.appendChild(li);
     });
   }
+
+  function adicionarCategoriaNaTela(nome){
+    const ul = $('catLista');
+    const jaExiste = Array.from(ul.children).some(li => li.querySelector('.nome-cat').textContent.toLowerCase() === nome.toLowerCase());
+    if (jaExiste) return;
+    const li = document.createElement('li');
+    li.draggable = true;
+    li.innerHTML = '<span class="arrasta">☰</span><span class="nome-cat"></span><span class="item-del">✕</span>';
+    li.querySelector('.nome-cat').textContent = nome;
+    li.querySelector('.item-del').onclick = () => li.remove();
+    li.addEventListener('dragstart', () => li.classList.add('arrastando'));
+    li.addEventListener('dragend', () => li.classList.remove('arrastando'));
+    li.addEventListener('dragover', e => {
+      e.preventDefault();
+      const arrastando = ul.querySelector('.arrastando');
+      if (arrastando && arrastando !== li) {
+        const rect = li.getBoundingClientRect();
+        const antes = (e.clientY - rect.top) < rect.height / 2;
+        ul.insertBefore(arrastando, antes ? li : li.nextSibling);
+      }
+    });
+    ul.appendChild(li);
+  }
+  $('addCategoriaBtn').onclick = () => {
+    const nome = $('novaCategoriaInput').value.trim();
+    if (!nome) return;
+    adicionarCategoriaNaTela(nome);
+    $('novaCategoriaInput').value = '';
+  };
+  $('novaCategoriaInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('addCategoriaBtn').click(); });
+
   $('salvarCatBtn').onclick = () => {
-    const nova = Array.from($('catLista').children).map(li => li.querySelector('span:last-child').textContent);
-    chamarApi('salvar-categorias', { lista: nova }).then(() => alert('Ordem salva!'));
+    const nova = Array.from($('catLista').children).map(li => li.querySelector('.nome-cat').textContent);
+    if (!nova.length) { alert('Deixe pelo menos um corredor.'); return; }
+    chamarApi('salvar-categorias', { lista: nova }).then(() => alert('Corredores salvos!'));
   };
 
   carregarEstadoInicial();

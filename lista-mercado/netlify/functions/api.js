@@ -196,7 +196,16 @@ async function processar(event) {
     }
     case 'salvar-categorias': {
       const lista = payload && payload.lista;
-      if (Array.isArray(lista) && lista.length) estado.categorias = lista;
+      if (Array.isArray(lista) && lista.length) {
+        estado.categorias = lista;
+        const substituta = lista[lista.length - 1];
+        estado.itens.forEach(i => {
+          if (!lista.includes(i.categoria)) i.categoria = substituta;
+        });
+        Object.values(estado.catalogo).forEach(c => {
+          if (!lista.includes(c.categoria)) c.categoria = substituta;
+        });
+      }
       break;
     }
     case 'importar-historico-semente': {
