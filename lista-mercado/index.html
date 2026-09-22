@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lista do Mercado</title>
+<meta name="theme-color" content="#cf9f96">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Mercado">
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f1ede6;
+    --rose:#cf9f96;
+    --rose-soft:#ddb6ad;
+    --rose-deep:#bd8a80;
+    --ink:#2d2b2c;
+    --ink-soft:#5a5654;
+    --card:#fffdfa;
+    --line:rgba(45,43,44,.14);
+    --green:#7fae8f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:'Montserrat',sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+    padding-bottom:90px;
+  }
+  .wrap{width:100%;max-width:480px;margin:0 auto;padding:0 14px}
+
+  header{
+    padding:22px 14px 14px;
+    text-align:center;
+  }
+  header h1{
+    font-size:20px;
+    font-weight:700;
+    letter-spacing:.04em;
+  }
+  header .sub{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:4px;
+  }
+
+  nav.tabs{
+    display:flex;
+    gap:6px;
+    margin:0 auto 14px;
+    max-width:480px;
+    padding:0 14px;
+  }
+  nav.tabs button{
+    flex:1;
+    font-family:'Montserrat',sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    padding:10px 4px;
+    border:1.5px solid var(--rose-soft);
+    background:var(--card);
+    color:var(--ink-soft);
+    border-radius:10px;
+    cursor:pointer;
+  }
+  nav.tabs button.active{
+    background:var(--rose);
+    color:#fff;
+    border-color:var(--rose);
+  }
+
+  .view{display:none}
+  .view.active{display:block}
+
+  .add-card{
+    background:var(--card);
+    border-radius:14px;
+    padding:14px;
+    box-shadow:0 8px 24px rgba(90,70,60,.10);
+    margin-bottom:16px;
+    position:relative;
+  }
+  .add-row{display:flex;gap:8px}
+  .add-row input[type=text]{
+    flex:1;
+    font-family:'Montserrat',sans-serif;
+    font-size:15px;
+    padding:11px 12px;
+    border:1px solid #e8ded7;
+    border-radius:9px;
+    background:#faf7f3;
+  }
+  .add-row input:focus{outline:none;border-color:var(--rose);background:#fff}
+  .add-row button{
+    background:var(--rose);
+    color:#fff;
+    border:none;
+    border-radius:9px;
+    padding:0 16px;
+    font-size:20px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .add-row button:active{background:var(--rose-deep)}
+  select#categoriaSel{
+    margin-top:8px;
+    width:100%;
+    font-family:'Montserrat',sans-serif;
+    font-size:13px;
+    padding:8px 10px;
+    border:1px solid #e8ded7;
+    border-radius:8px;
+    background:#faf7f3;
+    color:var(--ink-soft);
+  }
+  .sugestoes{
+    position:absolute;
+    left:14px;right:14px;top:60px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:10px;
+    box-shadow:0 10px 24px rgba(0,0,0,.12);
+    max-height:180px;
+    overflow-y:auto;
+    z-index:20;
+    display:none;
+  }
+  .sugestoes div{
+    padding:10px 12px;
+    font-size:14px;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;
+  }
+  .sugestoes div:last-child{border-bottom:none}
+  .sugestoes div:active{background:var(--bg)}
+
+  .categoria-grupo{margin-bottom:18px}
+  .categoria-titulo{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--rose-deep);
+    margin:0 0 8px 4px;
+  }
+  ul.itens{list-style:none}
+  ul.itens li{
+    background:var(--card);
+    border-radius:10px;
+    padding:12px 14px;
+    margin-bottom:7px;
+    display:flex;
+    align-items:center;
+    gap:11px;
+    box-shadow:0 2px 8px rgba(90,70,60,.06);
+  }
+  .bolinha{
+    width:24px;height:24px;
+    border-radius:50%;
+    border:2px solid var(--rose-soft);
+    flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  li.feito .bolinha{background:var(--green);border-color:var(--green)}
+  .bolinha svg{width:13px;height:13px;display:none}
+  li.feito .bolinha svg{display:block}
+  .item-nome{flex:1;font-size:15px}
+  li.feito .item-nome{text-decoration:line-through;color:var(--ink-soft)}
+  .item-del{
+    color:#c98f8f;
+    font-size:18px;
+    padding:4px 6px;
+    cursor:pointer;
+  }
+
+  .secao-feitos{margin-top:22px}
+  .secao-feitos summary{
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+    padding:6px 4px;
+  }
+
+  .vazio{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:13.5px;
+    padding:30px 10px;
+    line-height:1.6;
+  }
+
+  .btn-nova-lista{
+    display:block;
+    width:calc(100% - 28px);
+    max-width:452px;
+    margin:20px auto 0;
+    background:var(--card);
+    border:1.5px solid var(--rose-soft);
+    color:var(--rose-deep);
+    font-weight:600;
+    font-size:13.5px;
+    padding:12px;
+    border-radius:10px;
+  }
+
+  .hist-card{
+    background:var(--card);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:10px;
+    box-shadow:0 4px 14px rgba(90,70,60,.08);
+    cursor:pointer;
+  }
+  .hist-card .data{font-weight:700;font-size:14.5px}
+  .hist-card .info{font-size:12.5px;color:var(--ink-soft);margin-top:3px}
+
+  .cat-lista{list-style:none}
+  .cat-lista li{
+    background:var(--card);
+    border-radius:9px;
+    padding:11px 12px;
+    margin-bottom:7px;
+    font-size:14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    cursor:grab;
+  }
+  .cat-lista li .arrasta{color:var(--ink-soft);font-size:16px}
+  .cat-lista li span.nome-cat{flex:1}
+  .cat-lista li .item-del{cursor:pointer}
+  .add-cat-row{display:flex;gap:8px;margin:14px 0}
+  .add-cat-row input{
+    flex:1;font-family:'Montserrat',sans-serif;font-size:14px;padding:10px 12px;
+    border:1px solid #e8ded7;border-radius:9px;background:#faf7f3;
+  }
+  .add-cat-row button{
+    background:var(--rose);color:#fff;border:none;border-radius:9px;
+    padding:0 16px;font-size:20px;font-weight:700;cursor:pointer;
+  }
+  .cat-lista li.arrastando{opacity:.4}
+  .cat-info{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin:6px 4px 14px;
+    line-height:1.5;
+  }
+  .btn-salvar-cat{
+    display:block;width:100%;
+    background:var(--rose);color:#fff;border:none;
+    font-weight:700;font-size:14px;padding:12px;border-radius:10px;
+    margin-top:6px;
+  }
+
+  .modal-bg{
+    display:none;
+    position:fixed;inset:0;
+    background:rgba(45,43,44,.5);
+    z-index:100;
+    align-items:center;justify-content:center;
+    padding:20px;
+  }
+  .modal-bg.show{display:flex}
+  .modal{
+    background:#fff;border-radius:14px;padding:22px 20px;
+    width:100%;max-width:340px;text-align:center;
+  }
+  .modal h3{font-size:16px;margin-bottom:12px}
+  .modal .nomes{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:14px}
+  .modal .nomes button{
+    border:1.5px solid var(--rose-soft);background:#fff;color:var(--ink);
+    padding:9px 14px;border-radius:20px;font-size:13.5px;font-family:'Montserrat',sans-serif;
+  }
+  .modal input{
+    width:100%;padding:10px;border:1px solid #e8ded7;border-radius:8px;margin-bottom:10px;font-size:14px;
+  }
+  .modal .ok-btn{
+    width:100%;background:var(--rose);color:#fff;border:none;padding:11px;border-radius:8px;font-weight:700;
+  }
+
+  .erro-conexao{
+    max-width:480px;margin:14px auto;padding:12px 16px;background:#fbe9e9;color:#8a3b3b;
+    border-radius:10px;font-size:13px;line-height:1.5;display:none;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app">
+  <div class="erro-conexao" id="erroConexao">Não consegui falar com o servidor agora. Suas últimas ações podem não ter sido salvas — verifique a internet e tente de novo.</div>
+  <header>
+    <h1>🛒 Lista do Mercado</h1>
+    <div class="sub" id="listaAtualLabel">carregando...</div>
+  </header>
+
+  <nav class="tabs">
+    <button data-view="atual" class="active">Lista</button>
+    <button data-view="historico">Histórico</button>
+    <button data-view="categorias">Corredores</button>
+  </nav>
+
+  <!-- LISTA ATUAL -->
+  <section class="view active" id="view-atual">
+    <div class="add-card">
+      <div class="add-row">
+        <input type="text" id="itemInput" placeholder="Adicionar item...">
+        <button id="addBtn">+</button>
+      </div>
+      <select id="categoriaSel"></select>
+      <div class="sugestoes" id="sugestoes"></div>
+    </div>
+
+    <div id="gruposAtivos"></div>
+    <div id="vazioAtivo" class="vazio" style="display:none">Nenhum item ainda. Adicione o primeiro acima 👆</div>
+
+    <details class="secao-feitos" id="secaoFeitos" style="display:none">
+      <summary>Já peguei (<span id="qtdFeitos">0</span>)</summary>
+      <ul class="itens" id="listaFeitos"></ul>
+    </details>
+
+    <button class="btn-nova-lista" id="novaListaBtn">Fechar esta lista</button>
+  </section>
+
+  <!-- HISTORICO -->
+  <section class="view" id="view-historico">
+    <div id="histLista"></div>
+    <div id="histDetalhe" style="display:none">
+      <button class="btn-nova-lista" id="voltarHistBtn" style="margin-bottom:14px">← Voltar</button>
+      <div id="histDetalheConteudo"></div>
+    </div>
+  </section>
+
+  <!-- CATEGORIAS -->
+  <section class="view" id="view-categorias">
+    <p class="cat-info">Arraste para colocar os corredores na ordem em que você anda no mercado, remova os que não usa e adicione novos. A lista principal passa a seguir essa ordem para todo mundo.</p>
+    <ul class="cat-lista" id="catLista"></ul>
+    <div class="add-cat-row">
+      <input type="text" id="novaCategoriaInput" placeholder="Novo corredor...">
+      <button id="addCategoriaBtn">+</button>
+    </div>
+    <button class="btn-salvar-cat" id="salvarCatBtn">Salvar</button>
+  </section>
+</div>
+
+<div class="modal-bg" id="modalNome">
+  <div class="modal">
+    <h3>Quem é você?</h3>
+    <div class="nomes" id="modalNomesBtns"></div>
+    <input type="text" id="modalNomeCustom" placeholder="Outro nome">
+    <button class="ok-btn" id="modalNomeOk">Confirmar</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalFechar">
+  <div class="modal">
+    <h3>Fechar esta lista</h3>
+    <p style="font-size:13.5px;color:var(--ink-soft);margin-bottom:16px">Você comprou tudo que estava nela?</p>
+    <div class="nomes" style="flex-direction:column">
+      <button class="ok-btn" id="fecharCompletaBtn" style="margin-bottom:8px">Comprei tudo ✅</button>
+      <button class="ok-btn" id="fecharIncompletaBtn" style="background:var(--card);color:var(--rose-deep);border:1.5px solid var(--rose-soft)">Ficou faltando algo</button>
+    </div>
+    <button id="fecharCancelarBtn" style="margin-top:14px;background:none;border:none;color:var(--ink-soft);font-size:13px">Cancelar</button>
+  </div>
+</div>
+
+<script>
+const API = '/.netlify/functions/api';
+const NOMES_SUGERIDOS = ["Bruno", "Gabriela", "Cintya", "Rose"];
+
+let usuario = localStorage.getItem('lm_usuario');
+let estado = { categorias: [], listaAtualId: null, itens: [], catalogo: {} };
+
+const $ = (id) => document.getElementById(id);
+
+function normaliza(s){
+  return s.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+}
+
+// ---------- Comunicação com o servidor ----------
+async function chamarApi(action, payload){
+  try{
+    const opts = action
+      ? { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ action, payload }) }
+      : { method: 'GET' };
+    const resp = await fetch(API, opts);
+    const corpo = await resp.json().catch(() => null);
+    if (!resp.ok) throw new Error((corpo && corpo.erro) || ('resposta ' + resp.status));
+    estado = corpo;
+    $('erroConexao').style.display = 'none';
+    renderTudo();
+  }catch(e){
+    $('erroConexao').textContent = 'Não consegui falar com o servidor: ' + e.message;
+    $('erroConexao').style.display = 'block';
+  }
+}
+
+function renderTudo(){
+  montarSelectCategorias();
+  $('listaAtualLabel').textContent = estado.listaAtualId ? ('Lista de ' + formataData(estado.listaAtualId)) : '';
+  renderItensAtuais();
+}
+
+async function carregarEstadoInicial(){
+  await chamarApi(null, null);
+  if (!estado.historicoImportado) await chamarApi('importar-historico-semente', null);
+  setInterval(() => chamarApi(null, null), 4000);
+}
+
+  // ---------- Nome do usuário ----------
+  function pedirNome(){
+    const box = $('modalNomesBtns');
+    box.innerHTML = '';
+    NOMES_SUGERIDOS.forEach(n => {
+      const b = document.createElement('button');
+      b.textContent = n;
+      b.onclick = () => { usuario = n; localStorage.setItem('lm_usuario', n); $('modalNome').classList.remove('show'); };
+      box.appendChild(b);
+    });
+    $('modalNome').classList.add('show');
+  }
+  $('modalNomeOk').onclick = () => {
+    const custom = $('modalNomeCustom').value.trim();
+    if (custom) { usuario = custom; localStorage.setItem('lm_usuario', custom); }
+    $('modalNome').classList.remove('show');
+  };
+  if (!usuario) pedirNome();
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('nav.tabs button').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      btn.classList.add('active');
+      $('view-' + btn.dataset.view).classList.add('active');
+      if (btn.dataset.view === 'historico') carregarHistoricoLista();
+      if (btn.dataset.view === 'categorias') renderCategoriasEdit();
+    };
+  });
+
+  function montarSelectCategorias(){
+    const sel = $('categoriaSel');
+    const atual = sel.value;
+    sel.innerHTML = '';
+    estado.categorias.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c; o.textContent = c;
+      sel.appendChild(o);
+    });
+    if (estado.categorias.includes(atual)) sel.value = atual;
+  }
+
+  function formataData(id){
+    const base = id.split('-#')[0];
+    const [y,m,d] = base.split('-');
+    return d + '/' + m + '/' + y + (id.includes('#') ? ' (nº' + id.split('#')[1] + ')' : '');
+  }
+
+  function renderItensAtuais(){
+    const grupos = $('gruposAtivos');
+    grupos.innerHTML = '';
+    const doListaAtual = estado.itens.filter(i => i.listaId === estado.listaAtualId);
+    const pendentes = doListaAtual.filter(i => !i.comprado);
+    const feitos = doListaAtual.filter(i => i.comprado);
+
+    $('vazioAtivo').style.display = doListaAtual.length === 0 ? 'block' : 'none';
+
+    estado.categorias.forEach(cat => {
+      const doCat = pendentes.filter(i => i.categoria === cat)
+        .sort((a,b) => a.nome.localeCompare(b.nome));
+      if (!doCat.length) return;
+      const div = document.createElement('div');
+      div.className = 'categoria-grupo';
+      div.innerHTML = '<div class="categoria-titulo">' + cat + '</div><ul class="itens"></ul>';
+      const ul = div.querySelector('ul');
+      doCat.forEach(i => ul.appendChild(itemLi(i)));
+      grupos.appendChild(div);
+    });
+
+    $('secaoFeitos').style.display = feitos.length ? 'block' : 'none';
+    $('qtdFeitos').textContent = feitos.length;
+    const ulFeitos = $('listaFeitos');
+    ulFeitos.innerHTML = '';
+    feitos.sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(i => ulFeitos.appendChild(itemLi(i)));
+  }
+
+  function itemLi(i){
+    const li = document.createElement('li');
+    if (i.comprado) li.classList.add('feito');
+    li.innerHTML = '<span class="bolinha"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>' +
+      '<span class="item-nome"></span><span class="item-del">✕</span>';
+    li.querySelector('.item-nome').textContent = i.nome;
+    li.querySelector('.bolinha').onclick = () => chamarApi('toggle-item', { id: i.id });
+    li.querySelector('.item-del').onclick = (e) => { e.stopPropagation(); chamarApi('delete-item', { id: i.id }); };
+    return li;
+  }
+
+  // ---------- Categorização automática ----------
+  const DICIONARIO_CATEGORIAS = [
+    ['Hortifruti', ['banana','maca','laranja','limao','abacaxi','uva','mamao','melancia','morango','pera','manga','abacate','tomate','cebola','alho','batata','cenoura','alface','couve','brocolis','pepino','pimentao','chuchu','abobrinha','abobora','beterraba','rucula','espinafre','salsa','cebolinha','coentro','gengibre','mandioca','milho verde','ervilha fresca','fruta','verdura','legume']],
+    ['Açougue e Peixaria', ['carne','frango','peito de frango','coxa','sobrecoxa','file','picanha','alcatra','costela','linguica','bacon','peixe','salmao','tilapia','camarao','carne moida','bisteca','cupim','fraldinha','maminha']],
+    ['Padaria', ['pao','paozinho','baguete','bisnaguinha','croissant','bolo','magic toast','torrada','rosca']],
+    ['Frios e Laticínios', ['leite','queijo','mussarela','requeijao','iogurte','manteiga','margarina','presunto','mortadela','cottage','ricota','cream cheese','nata','creme de leite','ovo']],
+    ['Bebidas', ['agua','suco','refrigerante','cerveja','vinho','energetico','isotonico']],
+    ['Congelados', ['sorvete','lasanha congelada','hamburguer congelado','nuggets','batata congelada','polpa de fruta','pao de queijo congelado']],
+    ['Limpeza', ['detergente','sabao em po','sabao','amaciante','desinfetante','agua sanitaria','alvejante','limpador','esponja','saco de lixo','papel toalha']],
+    ['Higiene e Farmácia', ['papel higienico','sabonete','shampoo','condicionador','creme dental','escova de dente','fio dental','desodorante','absorvente','algodao','curativo','remedio','protetor solar']],
+    ['Bebês e Infantil', ['fralda','formula','aptanutri','lenco umedecido','pomada','mamadeira','papinha']],
+    ['Pet', ['racao','petisco','areia de gato','tapete higienico','biscoitos juju']],
+    ['Bazar e Utilidades', ['pilha','lampada','vela','guardanapo','papel aluminio','filme plastico','prendedor de roupa']],
+    ['Mercearia', ['arroz','feijao','grao de bico','macarrao','massa','molho de tomate','extrato de tomate','oleo','azeite','vinagre','acucar','sal','farinha','tahine','palmito','atum','sardinha','biscoito','bolacha','achocolatado','cafe','cha','mel','granola','aveia','tapioca','castanha','amendoim','pipoca','fermento','maionese','ketchup','mostarda']]
+  ];
+
+  function adivinharCategoria(nome){
+    const alvo = normaliza(nome);
+    if (!alvo) return null;
+    for (const [categoria, palavras] of DICIONARIO_CATEGORIAS){
+      if (palavras.some(p => alvo.includes(p))) return categoria;
+    }
+    return null;
+  }
+
+  // ---------- Catálogo (sugestões / auto-categoria) ----------
+  const input = $('itemInput');
+  const sugBox = $('sugestoes');
+  const categoriaSel = $('categoriaSel');
+  let categoriaEscolhidaManualmente = false;
+  categoriaSel.addEventListener('change', () => { categoriaEscolhidaManualmente = true; });
+
+  input.addEventListener('input', () => {
+    const termo = normaliza(input.value);
+    if (!termo) { sugBox.style.display = 'none'; return; }
+
+    if (!categoriaEscolhidaManualmente) {
+      const chaveExata = Object.keys(estado.catalogo).find(k => k === termo);
+      const categoriaConhecida = chaveExata ? estado.catalogo[chaveExata].categoria : adivinharCategoria(input.value);
+      if (categoriaConhecida && estado.categorias.includes(categoriaConhecida)) {
+        categoriaSel.value = categoriaConhecida;
+      }
+    }
+
+    const opcoes = Object.values(estado.catalogo)
+      .filter(c => normaliza(c.nome).includes(termo))
+      .sort((a,b) => (b.vezes||0) - (a.vezes||0))
+      .slice(0, 6);
+    if (!opcoes.length) { sugBox.style.display = 'none'; return; }
+    sugBox.innerHTML = '';
+    opcoes.forEach(o => {
+      const div = document.createElement('div');
+      div.textContent = o.nome + ' · ' + o.categoria;
+      div.onclick = () => {
+        input.value = o.nome;
+        categoriaSel.value = o.categoria;
+        categoriaEscolhidaManualmente = true;
+        sugBox.style.display = 'none';
+      };
+      sugBox.appendChild(div);
+    });
+    sugBox.style.display = 'block';
+  });
+  document.addEventListener('click', (e) => {
+    if (!sugBox.contains(e.target) && e.target !== input) sugBox.style.display = 'none';
+  });
+
+  function adicionarItem(){
+    const nome = input.value.trim();
+    if (!nome) return;
+    const categoria = categoriaSel.value;
+
+    chamarApi('add-item', { nome, categoria, criadoPor: usuario });
+
+    input.value = '';
+    categoriaEscolhidaManualmente = false;
+    sugBox.style.display = 'none';
+    input.focus();
+  }
+  $('addBtn').onclick = adicionarItem;
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') adicionarItem(); });
+
+  // ---------- Fechar lista ----------
+  $('novaListaBtn').onclick = () => $('modalFechar').classList.add('show');
+  $('fecharCancelarBtn').onclick = () => $('modalFechar').classList.remove('show');
+  $('fecharCompletaBtn').onclick = () => {
+    $('modalFechar').classList.remove('show');
+    chamarApi('fechar-lista', { completa: true, fechadoPor: usuario });
+  };
+  $('fecharIncompletaBtn').onclick = () => {
+    $('modalFechar').classList.remove('show');
+    chamarApi('fechar-lista', { completa: false, fechadoPor: usuario });
+  };
+
+  // ---------- Histórico ----------
+  function carregarHistoricoLista(){
+    $('histDetalhe').style.display = 'none';
+    $('histLista').style.display = 'block';
+    const porLista = {};
+    estado.itens.forEach(it => {
+      if (!porLista[it.listaId]) porLista[it.listaId] = [];
+      porLista[it.listaId].push(it);
+    });
+    const ids = Object.keys(porLista).sort().reverse();
+    $('histLista').innerHTML = '';
+    if (!ids.length) { $('histLista').innerHTML = '<div class="vazio">Nenhuma lista arquivada ainda.</div>'; return; }
+    ids.forEach(id => {
+      const itens = porLista[id];
+      const feitos = itens.filter(i => i.comprado).length;
+      const info = estado.listas[id] || {};
+      let status = 'Em aberto';
+      if (id === estado.listaAtualId) status = 'Atual';
+      else if (info.status === 'fechada') status = info.completa ? 'Fechada · comprou tudo' : 'Fechada · ficou faltando algo';
+      const card = document.createElement('div');
+      card.className = 'hist-card';
+      card.innerHTML = '<div class="data">' + formataData(id) + '</div>' +
+        '<div class="info">' + status + ' · ' + feitos + ' de ' + itens.length + ' itens comprados</div>';
+      card.onclick = () => mostrarDetalheHistorico(id, itens);
+      $('histLista').appendChild(card);
+    });
+  }
+
+  function mostrarDetalheHistorico(id, itens){
+    $('histLista').style.display = 'none';
+    $('histDetalhe').style.display = 'block';
+    const conteudo = $('histDetalheConteudo');
+    const info = estado.listas[id] || {};
+    const colaboradores = [...new Set(itens.map(i => i.criadoPor).filter(Boolean))];
+    conteudo.innerHTML = '<h3 style="margin-bottom:6px">' + formataData(id) + '</h3>';
+    if (colaboradores.length) {
+      conteudo.innerHTML += '<p class="cat-info" style="margin-top:0">Colaboraram: ' + colaboradores.join(', ') + '</p>';
+    }
+    if (info.status === 'fechada' && info.fechadoPor) {
+      conteudo.innerHTML += '<p class="cat-info" style="margin-top:0">Fechada por: ' + info.fechadoPor + '</p>';
+    }
+    if (id !== estado.listaAtualId && info.status === 'fechada') {
+      const btn = document.createElement('button');
+      btn.className = 'btn-nova-lista';
+      btn.style.marginBottom = '16px';
+      btn.textContent = 'Reabrir esta lista';
+      btn.onclick = () => {
+        chamarApi('reabrir-lista', { id }).then(() => {
+          document.querySelector('nav.tabs button[data-view="atual"]').click();
+        });
+      };
+      conteudo.appendChild(btn);
+    }
+    const porCat = {};
+    itens.forEach(i => { (porCat[i.categoria] = porCat[i.categoria] || []).push(i); });
+    Object.keys(porCat).sort().forEach(cat => {
+      const div = document.createElement('div');
+      div.className = 'categoria-grupo';
+      div.innerHTML = '<div class="categoria-titulo">' + cat + '</div><ul class="itens"></ul>';
+      const ul = div.querySelector('ul');
+      porCat[cat].sort((a,b)=>a.nome.localeCompare(b.nome)).forEach(i => {
+        const li = document.createElement('li');
+        if (i.comprado) li.classList.add('feito');
+        li.innerHTML = '<span class="bolinha"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span><span class="item-nome"></span>';
+        li.querySelector('.item-nome').textContent = i.nome;
+        ul.appendChild(li);
+      });
+      conteudo.appendChild(div);
+    });
+  }
+  $('voltarHistBtn').onclick = carregarHistoricoLista;
+
+  // ---------- Categorias (arrastar/editar/excluir/adicionar) ----------
+  function renderCategoriasEdit(){
+    const ul = $('catLista');
+    ul.innerHTML = '';
+    estado.categorias.forEach(c => {
+      const li = document.createElement('li');
+      li.draggable = true;
+      li.innerHTML = '<span class="arrasta">☰</span><span class="nome-cat"></span><span class="item-del">✕</span>';
+      li.querySelector('.nome-cat').textContent = c;
+      li.querySelector('.item-del').onclick = () => li.remove();
+      li.addEventListener('dragstart', () => li.classList.add('arrastando'));
+      li.addEventListener('dragend', () => li.classList.remove('arrastando'));
+      li.addEventListener('dragover', e => {
+        e.preventDefault();
+        const arrastando = ul.querySelector('.arrastando');
+        if (arrastando && arrastando !== li) {
+          const rect = li.getBoundingClientRect();
+          const antes = (e.clientY - rect.top) < rect.height / 2;
+          ul.insertBefore(arrastando, antes ? li : li.nextSibling);
+        }
+      });
+      ul.appendChild(li);
+    });
+  }
+
+  function adicionarCategoriaNaTela(nome){
+    const ul = $('catLista');
+    const jaExiste = Array.from(ul.children).some(li => li.querySelector('.nome-cat').textContent.toLowerCase() === nome.toLowerCase());
+    if (jaExiste) return;
+    const li = document.createElement('li');
+    li.draggable = true;
+    li.innerHTML = '<span class="arrasta">☰</span><span class="nome-cat"></span><span class="item-del">✕</span>';
+    li.querySelector('.nome-cat').textContent = nome;
+    li.querySelector('.item-del').onclick = () => li.remove();
+    li.addEventListener('dragstart', () => li.classList.add('arrastando'));
+    li.addEventListener('dragend', () => li.classList.remove('arrastando'));
+    li.addEventListener('dragover', e => {
+      e.preventDefault();
+      const arrastando = ul.querySelector('.arrastando');
+      if (arrastando && arrastando !== li) {
+        const rect = li.getBoundingClientRect();
+        const antes = (e.clientY - rect.top) < rect.height / 2;
+        ul.insertBefore(arrastando, antes ? li : li.nextSibling);
+      }
+    });
+    ul.appendChild(li);
+  }
+  $('addCategoriaBtn').onclick = () => {
+    const nome = $('novaCategoriaInput').value.trim();
+    if (!nome) return;
+    adicionarCategoriaNaTela(nome);
+    $('novaCategoriaInput').value = '';
+  };
+  $('novaCategoriaInput').addEventListener('keydown', e => { if (e.key === 'Enter') $('addCategoriaBtn').click(); });
+
+  $('salvarCatBtn').onclick = () => {
+    const nova = Array.from($('catLista').children).map(li => li.querySelector('.nome-cat').textContent);
+    if (!nova.length) { alert('Deixe pelo menos um corredor.'); return; }
+    chamarApi('salvar-categorias', { lista: nova }).then(() => alert('Corredores salvos!'));
+  };
+
+  carregarEstadoInicial();
+</script>
+</body>
+</html>

@@ -21,3 +21,4 @@ O usuário quer telas enxutas e objetivas. Ele não quer ler nada que não exija
 
 5. Se algo falhar ou exigir uma decisão do usuário, coloque isso dentro da seção ⚠️, em negrito, com o mínimo de contexto necessário para decidir.
 6. Perguntas ao usuário: no máximo uma por vez, em negrito, dentro da seção ⚠️.
+7. **Notificações automáticas de rotina (deploy, CI, bots do GitHub) não geram uma resposta para cada evento.** Quando vários eventos de rotina chegarem em sequência sem nada que exija ação do usuário, não responda a cada um — fique em silêncio e só responda quando: (a) algo realmente precisar da atenção dele, ou (b) o processo todo (ex.: deploy) chegar ao estado final, aí sim com uma única mensagem curta resumindo o resultado.
